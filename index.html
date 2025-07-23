@@ -1,43 +1,46 @@
-<main>
-  <div class="card">
-    <h2 id="symbolDisplay">—</h2>
-    <div class="data-grid">
-      <div class="data-item">
-        <span class="label">Price</span>
-        <span id="price" class="value">—</span>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>StockSurge</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>StockSurge</h1>
+      <div class="symbol-input">
+        <input type="text" id="symbol" placeholder="Ticker (e.g. AAPL)">
+        <button id="fetchBtn">Fetch</button>
       </div>
-      <div class="data-item">
-        <span class="label">Change</span>
-        <span id="change" class="value">—</span>
+    </header>
+
+    <main>
+      <div class="card">
+        <h2 id="symbolDisplay">—</h2>
+        <div class="data-grid">
+          <div class="data-item"><span class="label">Price</span><span id="price" class="value">—</span></div>
+          <div class="data-item"><span class="label">Change</span><span id="change" class="value">—</span></div>
+          <div class="data-item"><span class="label">Change %</span><span id="changePercent" class="value">—</span></div>
+          <div class="data-item"><span class="label">Volume</span><span id="volume" class="value">—</span></div>
+          <div class="data-item"><span class="label">Avg Volume</span><span id="avgVolume" class="value">—</span></div>
+          <div class="data-item"><span class="label">Vol Δ %</span><span id="volChangePercent" class="value">—</span></div>
+          <div class="data-item"><span class="label">SMA 20</span><span id="sma20" class="value">—</span></div>
+          <div class="data-item"><span class="label">RSI 14</span><span id="rsi14" class="value">—</span></div>
+        </div>
       </div>
-      <div class="data-item">
-        <span class="label">Change %</span>
-        <span id="changePercent" class="value">—</span>
+      <div class="chart-wrapper">
+        <canvas id="chart"></canvas>
       </div>
-      <div class="data-item">
-        <span class="label">Volume</span>
-        <span id="volume" class="value">—</span>
-      </div>
-      <div class="data-item">
-        <span class="label">Avg Volume</span>
-        <span id="avgVolume" class="value">—</span>
-      </div>
-      <div class="data-item">
-        <span class="label">Vol Δ %</span>
-        <span id="volChangePercent" class="value">—</span>
-      </div>
-      <div class="data-item">
-        <span class="label">SMA 20</span>
-        <span id="sma20" class="value">—</span>
-      </div>
-      <div class="data-item">
-        <span class="label">RSI 14</span>
-        <span id="rsi14" class="value">—</span>
-      </div>
-    </div>
+    </main>
+
+    <footer>
+      <p>© StockSurge</p>
+    </footer>
   </div>
 
-  <div class="chart-wrapper">
-    <canvas id="chart"></canvas>
-  </div>
-</main>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>
