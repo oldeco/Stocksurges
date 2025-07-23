@@ -1,85 +1,11 @@
-* { box-sizing: border-box; margin: 0; padding: 0; }
-body, html { height: 100%; font-family: system-ui, sans-serif; background: #f0f2f5; color: #333; }
-
-.container {
-  max-width: 600px;
-  margin: auto;
-  padding: 16px;
-  display: flex;
-  flex-direction: column;
-  min-height: 100vh;
-}
-
-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 24px;
-}
-
-header h1 {
-  font-size: 1.5rem;
-}
-
-.symbol-input {
-  display: flex;
-}
-
-.symbol-input input {
-  padding: 8px;
-  font-size: 1rem;
-  border: 1px solid #ccc;
-  border-radius: 4px 0 0 4px;
-  outline: none;
-}
-
-.symbol-input button {
-  padding: 8px 12px;
-  font-size: 1rem;
-  border: none;
-  background-color: #0077cc;
-  color: white;
-  border-radius: 0 4px 4px 0;
-  cursor: pointer;
-}
-
-.card {
-  background: white;
-  padding: 16px;
-  border-radius: 8px;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-  margin-bottom: 24px;
-}
-
-.data-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-  gap: 16px;
-  margin-top: 8px;
-}
-
-.data-item .label {
-  font-size: 0.85rem;
-  color: #555;
-}
-
-.data-item .value {
-  font-size: 1.25rem;
-  font-weight: bold;
-  margin-top: 4px;
-}
-
-.chart-wrapper {
-  background: white;
-  padding: 16px;
-  border-radius: 8px;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-  flex-grow: 1;
-}
-
-footer {
-  text-align: center;
-  font-size: 0.85rem;
-  color: #777;
-  margin-top: auto;
-}
+* { box-sizing:border-box; margin:0; padding:0 }
+body { font-family:system-ui,sans-serif; background:#f0f2f5; color:#333 }
+.container { max-width:600px; margin:20px auto; padding:0 10px }
+header { display:flex; align-items:center; justify-content:space-between; margin-bottom:20px }
+input { padding:8px; font-size:1rem; border:1px solid #ccc; border-radius:4px 0 0 4px; outline:none }
+button { padding:8px 12px; font-size:1rem; border:none; background:#0077cc; color:#fff; border-radius:0 4px 4px 0; cursor:pointer }
+.card, .chart-wrapper { background:#fff; border-radius:8px; box-shadow:0 2px 6px rgba(0,0,0,0.1); padding:16px; margin-bottom:20px }
+.data-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(120px,1fr)); gap:12px }
+.label { display:block; font-size:.85rem; color:#555 }
+.value { font-size:1.2rem; font-weight:600; margin-top:4px }
+canvas { width:100%!important; height:200px!important }
