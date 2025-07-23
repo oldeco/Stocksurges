@@ -2,11 +2,40 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>API Key Test</title>
+  <title>API Key Inline Test</title>
 </head>
 <body>
-  <h1>Polygon API Key Test</h1>
-  <p>If your key is working you’ll see an alert with AAPL’s last price.</p>
-  <script src="script.js"></script>
+  <h1>Polygon API Key Inline Test</h1>
+  <p>If your key is valid you’ll see AAPL’s last close in an alert.</p>
+
+  <script>
+    // ← Paste your REST API key here:
+    const API_KEY = 'cae0e07e-aaba-46b6-aa4c-db31331f22fb';
+
+    (async function(){
+      const sym = 'AAPL';
+      try {
+        const res = await fetch(
+          `https://api.polygon.io/v2/snapshot/locale/us/markets/stocks/tickers/${sym}?apiKey=${API_KEY}`
+        );
+        if (!res.ok) {
+          alert(`HTTP ${res.status} ${res.statusText}`);
+          console.error(await res.text());
+          return;
+        }
+        const data = await res.json();
+        if (!data.ticker) {
+          alert(`API returned no ticker data: ${JSON.stringify(data)}`);
+          return;
+        }
+        const price = data.ticker.day.c;
+        alert(`✅ Success! ${sym} last close: $${price.toFixed(2)}`);
+        console.log(data);
+      } catch (err) {
+        alert(`Network error: ${err.message}`);
+        console.error(err);
+      }
+    })();
+  </script>
 </body>
 </html>
