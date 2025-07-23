@@ -7,7 +7,7 @@ const API_KEY = 'cae0e07e-aaba-46b6-aa4c-db31331f22fb';
   const symbol = 'AAPL';
   try {
     const res = await fetch(
-      `https://api.polygon.io/v2/snapshot/locale/us/markets/stocks/tickers/${symbol}?apiKey=${cae0e07e-aaba-46b6-aa4c-db31331f22fb}`
+      `https://files.polygon.io/${symbol}?apiKey=${API_KEY}`
     );
     // HTTP-level errors
     if (!res.ok) {
