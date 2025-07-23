@@ -1,7 +1,7 @@
 // script.js
 
 // ← your provided key
-const API_KEY = b9pUWqpiaRl96K9b2EOpNePWZ2TCiALB;
+const API_KEY = 'b9pUWqpiaRl96K9b2EOpNePWZ2TCiALB';
 
 // calculate simple moving average of last `period` closes
 function calculateSMA(arr, period) {
