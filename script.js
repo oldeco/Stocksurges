@@ -1,23 +1,23 @@
-// script.js
 console.log('script.js loaded');
 
-// ← REPLACE this with your REST API key from "Accessing the API" tab
+// ← PASTE your REST API KEY from the “Accessing the API” tab here
 const API_KEY = 'b9pUWqpiaRl96K9b2EOpNePWZ2TCiALB';
 
-// simple moving average over last n values
+// Simple moving average
 function sma(arr, n) {
   if (arr.length < n) return null;
   return arr.slice(-n).reduce((sum, v) => sum + v, 0) / n;
 }
 
-// relative strength index over period days
+// 14‑day RSI
 function rsi(arr, period) {
   if (arr.length <= period) return null;
   const slice = arr.slice(-period - 1);
   let gains = 0, losses = 0;
   for (let i = 1; i < slice.length; i++) {
     const d = slice[i] - slice[i - 1];
-    if (d > 0) gains += d; else losses -= d;
+    if (d > 0) gains += d;
+    else losses -= d;
   }
   const avgG = gains / period;
   const avgL = losses / period;
@@ -30,77 +30,91 @@ async function fetchStock(sym) {
   sym = sym.toUpperCase();
   console.log('Fetching', sym);
 
-  // 1) Snapshot endpoint for live price, prev-day close, % change & volume
-  let snap;
+  // 1) Last trade price
+  let last;
   try {
-    snap = await fetch(
-      `https://api.polygon.io/v2/snapshot/locale/us/markets/stocks/tickers/${sym}?apiKey=${API_KEY}`
+    last = await fetch(
+      `https://api.polygon.io/v2/last/trade/${sym}?apiKey=${b9pUWqpiaRl96K9b2EOpNePWZ2TCiALB}`
     ).then(r => r.json());
-    console.log('Snapshot:', snap);
+    console.log('Last trade:', last);
   } catch {
-    return alert('Network error loading snapshot');
+    return alert('Network error fetching last trade');
   }
-  if (!snap.ticker) {
-    return alert(`No data for ${sym}`);
+  if (!last.results?.last?.price) {
+    return alert(`No trade data for ${sym}`);
   }
-  const t = snap.ticker;
-  const price  = t.day.c;
-  const prev   = t.prevDay.c;
-  const change = price - prev;
-  const pct    = t.todaysChangePerc * 100;
-  const vol    = t.day.v;
+  const price = last.results.last.price;
+
+  // 2) Yesterday’s bar for prev-close & volume
+  const yesterday = new Date(Date.now() - 864e5).toISOString().slice(0,10);
+  let dayBar;
+  try {
+    const barRes = await fetch(
+      `https://api.polygon.io/v2/aggs/ticker/${sym}/range/1/day/${yesterday}/${yesterday}?apiKey=${b9pUWqpiaRl96K9b2EOpNePWZ2TCiALB}`
+    ).then(r => r.json());
+    dayBar = barRes.results?.[0];
+    console.log('Yesterday bar:', barRes);
+  } catch {
+    return alert('Network error fetching previous day');
+  }
+  if (!dayBar) {
+    return alert(`No historical data for ${sym}`);
+  }
+  const prevClose = dayBar.c;
+  const prevVol   = dayBar.v;
+
+  // Calculate change & fill UI
+  const change = price - prevClose;
+  const pct    = (change / prevClose) * 100;
 
   document.getElementById('symbolDisplay').textContent  = sym;
   document.getElementById('price').textContent          = price.toFixed(2);
-  document.getElementById('change').textContent         = (change>=0?'+':'')+change.toFixed(2);
-  document.getElementById('changePercent').textContent  = (pct>=0?'+':'')+pct.toFixed(2)+'%';
-  document.getElementById('volume').textContent         = vol.toLocaleString();
+  document.getElementById('change').textContent         = (change >= 0 ? '+' : '') + change.toFixed(2);
+  document.getElementById('changePercent').textContent  = (pct >= 0 ? '+' : '') + pct.toFixed(2) + '%';
+  document.getElementById('volume').textContent         = prevVol.toLocaleString();
 
-  // 2) Aggregates endpoint for 30‑day history
-  const end   = new Date().toISOString().slice(0,10);
-  const start = new Date(Date.now() - 30*24*60*60*1000).toISOString().slice(0,10);
+  // 3) 30‑day history for metrics & chart
+  const end   = yesterday;
+  const start = new Date(Date.now() - 30*864e5).toISOString().slice(0,10);
   let aggs;
   try {
     aggs = await fetch(
       `https://api.polygon.io/v2/aggs/ticker/${sym}/range/1/day/${start}/${end}?apiKey=${API_KEY}`
     ).then(r => r.json());
-    console.log('Aggregates:', aggs);
+    console.log('30d aggs:', aggs);
   } catch {
-    return alert('Network error loading history');
+    return alert('Network error fetching history');
   }
-
   const bars   = aggs.results || [];
   const closes = bars.map(b => b.c);
-  const volsArr= bars.map(b => b.v);
+  const vols   = bars.map(b => b.v);
 
-  // volume metrics
-  const avgV  = volsArr.reduce((a,b)=>a+b,0)/volsArr.length;
-  const volΔp = ((vol - avgV)/avgV)*100;
+  // Volume metrics
+  const avgV   = vols.reduce((a,b) => a + b, 0) / vols.length;
+  const volΔp  = ((prevVol - avgV) / avgV) * 100;
   document.getElementById('avgVolume').textContent        = Math.round(avgV).toLocaleString();
-  document.getElementById('volChangePercent').textContent = (volΔp>=0?'+':'')+volΔp.toFixed(2)+'%';
+  document.getElementById('volChangePercent').textContent = (volΔp >= 0 ? '+' : '') + volΔp.toFixed(2) + '%';
 
-  // SMA20 & RSI14
-  document.getElementById('sma20').textContent = sma(closes,20)?.toFixed(2) ?? '—';
-  document.getElementById('rsi14').textContent = rsi(closes,14)?.toFixed(2) ?? '—';
+  // Indicators
+  document.getElementById('sma20').textContent = sma(closes, 20)?.toFixed(2) ?? '—';
+  document.getElementById('rsi14').textContent = rsi(closes, 14)?.toFixed(2) ?? '—';
 
-  // draw chart
+  // Draw chart
   const ctx = document.getElementById('chart').getContext('2d');
   if (window.stockChart) window.stockChart.destroy();
   window.stockChart = new Chart(ctx, {
     type: 'line',
     data: {
       labels: bars.map(b => new Date(b.t).toLocaleDateString()),
-      datasets: [{ label:`${sym} Close`, data: closes, borderWidth:2, tension:0.3 }]
+      datasets: [{ label: `${sym} Close`, data: closes, borderWidth:2, tension:0.3 }]
     },
-    options: { responsive:true, maintainAspectRatio:false, scales:{ x:{ display:false } } }
+    options: { maintainAspectRatio:false, responsive:true, scales:{ x:{ display:false } } }
   });
 }
 
-// wire up button
+// Hook up button + initial load
 document.getElementById('fetchBtn').addEventListener('click', () => {
   const s = document.getElementById('symbol').value.trim();
   if (s) fetchStock(s);
 });
-
-// initial load
 window.addEventListener('load', () => fetchStock('AAPL'));
