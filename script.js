@@ -1,14 +1,13 @@
 // script.js
+console.log('script.js loaded');
 
-// ← your provided key
 const API_KEY = 'b9pUWqpiaRl96K9b2EOpNePWZ2TCiALB';
 
 // calculate simple moving average of last `period` closes
 function calculateSMA(arr, period) {
   if (arr.length < period) return null;
   const slice = arr.slice(-period);
-  const sum = slice.reduce((acc, v) => acc + v, 0);
-  return sum / period;
+  return slice.reduce((sum, v) => sum + v, 0) / period;
 }
 
 // calculate RSI over `period` days
@@ -29,37 +28,37 @@ function calculateRSI(arr, period) {
 }
 
 async function fetchStock(symbol) {
-  const snapUrl = `https://api.polygon.io/v2/snapshot/locale/us/markets/stocks/tickers/${symbol}?apiKey=${b9pUWqpiaRl96K9b2EOpNePWZ2TCiALB}`;
+  const sym = symbol.toUpperCase();
+  console.log('Fetching data for', sym);
+  const snapUrl = `https://api.polygon.io/v2/snapshot/locale/us/markets/stocks/tickers/${sym}?apiKey=${b9pUWqpiaRl96K9b2EOpNePWZ2TCiALB}`;
   let data;
   try {
     const res = await fetch(snapUrl);
     data = await res.json();
+    console.log('Snapshot response', data);
   } catch (err) {
-    console.error(err);
+    console.error('Network error', err);
     return alert('Network error fetching data');
   }
 
-  if (!data.results) {
-    console.warn('Full response:', data);
-    return alert(`No data for “${symbol.toUpperCase()}”`);
+  if (!data.ticker) {
+    console.warn('Invalid symbol or no data', data);
+    return alert(`No data for “${sym}”`);
   }
-  const t = data.results;
+  const t = data.ticker;
+  const price = t.day.c;
+  const prev  = t.prevDay.c;
+  const change= price - prev;
+  const pct   = t.todaysChangePerc * 100;
+  const volume = t.day.v;
 
-  // today vs prev close
-  const price   = t.day.c;
-  const prev    = t.prevDay.c;
-  const change  = price - prev;
-  const pct     = t.todaysChangePerc * 100;
-  const volume  = t.day.v;
+  document.getElementById('symbolDisplay').textContent  = sym;
+  document.getElementById('price').textContent          = price.toFixed(2);
+  document.getElementById('change').textContent         = `${change >= 0 ? '+' : ''}${change.toFixed(2)}`;
+  document.getElementById('changePercent').textContent  = `${pct >= 0 ? '+' : ''}${pct.toFixed(2)}%`;
+  document.getElementById('volume').textContent         = volume.toLocaleString();
 
-  document.getElementById('symbolDisplay').textContent = symbol.toUpperCase();
-  document.getElementById('price').textContent         = price.toFixed(2);
-  document.getElementById('change').textContent        = `${change >= 0 ? '+' : ''}${change.toFixed(2)}`;
-  document.getElementById('changePercent').textContent = `${pct >= 0 ? '+' : ''}${pct.toFixed(2)}%`;
-  document.getElementById('volume').textContent        = volume.toLocaleString();
-
-  // pull history & compute volume metrics + quant stats
-  await loadHistoryAndMetrics(symbol, volume);
+  await loadHistoryAndMetrics(sym, volume);
 }
 
 async function loadHistoryAndMetrics(symbol, currentVolume) {
@@ -67,56 +66,56 @@ async function loadHistoryAndMetrics(symbol, currentVolume) {
   const end   = today.toISOString().slice(0,10);
   const start = new Date(today.setDate(today.getDate() - 30)).toISOString().slice(0,10);
   const aggsUrl = `https://api.polygon.io/v2/aggs/ticker/${symbol}/range/1/day/${start}/${end}?apiKey=${b9pUWqpiaRl96K9b2EOpNePWZ2TCiALB}`;
-  const aggsRes = await fetch(aggsUrl);
-  const aggsData = await aggsRes.json();
+  let aggsData;
+  try {
+    const res = await fetch(aggsUrl);
+    aggsData = await res.json();
+    console.log('Aggregates response', aggsData);
+  } catch (err) {
+    console.error('History fetch error', err);
+    return;
+  }
   const bars = aggsData.results || [];
-
   const closes = bars.map(b => b.c);
-  const volumes = bars.map(b => b.v);
+  const volumes= bars.map(b => b.v);
 
-  // volume metrics
-  const avgVolume = volumes.reduce((a, v) => a + v, 0) / volumes.length;
+  // Volume metrics
+  const avgVolume = volumes.reduce((a,v) => a + v, 0) / volumes.length;
   const volDeltaP = ((currentVolume - avgVolume) / avgVolume) * 100;
-
   document.getElementById('avgVolume').textContent        = Math.round(avgVolume).toLocaleString();
   document.getElementById('volChangePercent').textContent = `${volDeltaP >= 0 ? '+' : ''}${volDeltaP.toFixed(2)}%`;
 
-  // quant stats
+  // Quant stats
   const sma20 = calculateSMA(closes, 20);
   const rsi14 = calculateRSI(closes, 14);
-
   document.getElementById('sma20').textContent = sma20 ? sma20.toFixed(2) : '—';
   document.getElementById('rsi14').textContent = rsi14 ? rsi14.toFixed(2) : '—';
 
-  // price chart
+  // Render chart
   const labels = bars.map(b => new Date(b.t).toLocaleDateString());
   const ctx = document.getElementById('chart').getContext('2d');
   if (window.stockChart) window.stockChart.destroy();
   window.stockChart = new Chart(ctx, {
     type: 'line',
-    data: {
-      labels,
-      datasets: [{
-        label: `${symbol.toUpperCase()} Close`,
-        data: closes,
-        borderWidth: 2,
-        tension: 0.2
-      }]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      scales: { x: { display: false } }
-    }
+    data: { labels, datasets: [{ label: `${symbol} Close`, data: closes, borderWidth: 2, tension: 0.2 }] },
+    options: { responsive: true, maintainAspectRatio: false, scales: { x: { display: false } } }
   });
 }
 
-document.getElementById('fetchBtn').onclick = () => {
-  const sym = document.getElementById('symbol').value.trim();
-  if (sym) fetchStock(sym);
-};
-
-window.addEventListener('DOMContentLoaded', () => {
-  document.getElementById('symbol').value = 'AAPL';
+document.addEventListener('DOMContentLoaded', () => {
+  console.log('DOM fully loaded');
+  const input = document.getElementById('symbol');
+  const btn   = document.getElementById('fetchBtn');
+  if (!input || !btn) {
+    return console.error('Missing #symbol or #fetchBtn in DOM');
+  }
+  btn.addEventListener('click', () => {
+    const sym = input.value.trim().toUpperCase();
+    console.log('Fetch clicked for', sym);
+    if (sym) fetchStock(sym);
+  });
+  // initial fetch
+  input.value = 'AAPL';
+  console.log('Initial fetch for AAPL');
   fetchStock('AAPL');
 });
