@@ -35,7 +35,7 @@ async function fetchStock(sym) {
   let snap;
   try {
     snap = await fetch(
-      `https://api.polygon.io/v2/snapshot/locale/us/markets/stocks/tickers/${sym}?apiKey=${API_KEY}`
+      `https://api.polygon.io/v2/snapshot/locale/us/markets/stocks/tickers/${sym}?apiKey=${0fe49cfed728cedc398677d2f019d072}`
     ).then(r => r.json());
     console.log('Snapshot response:', snap);
   } catch (err) {
@@ -67,7 +67,7 @@ async function fetchStock(sym) {
   let aggs;
   try {
     aggs = await fetch(
-      `https://api.polygon.io/v2/aggs/ticker/${sym}/range/1/day/${start}/${end}?apiKey=${API_KEY}`
+      `https://api.polygon.io/v2/aggs/ticker/${sym}/range/1/day/${start}/${end}?apiKey=${0fe49cfed728cedc398677d2f019d072}`
     ).then(r => r.json());
     console.log('Aggregates response:', aggs);
   } catch (err) {
