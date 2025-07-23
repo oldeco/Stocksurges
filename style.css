@@ -7,5 +7,5 @@ button { padding:8px 12px; font-size:1rem; border:none; background:#0077cc; colo
 .card, .chart-wrapper { background:#fff; border-radius:8px; box-shadow:0 2px 6px rgba(0,0,0,0.1); padding:16px; margin-bottom:20px }
 .data-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(120px,1fr)); gap:12px }
 .label { display:block; font-size:.85rem; color:#555 }
-.value { font-size:1.2rem; font-weight:600; margin-top:4px }
+.value { font-size:1.2rem; font-weight:600; margin-top:4px; display:block }
 canvas { width:100%!important; height:200px!important }
