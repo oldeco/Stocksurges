@@ -1,7 +1,7 @@
 // script.js
 
 // ← Replace this with your REST API Key from "Accessing the API"
-const API_KEY = '	b9pUWqpiaRl96K9b2EOpNePWZ2TCiALB';
+const API_KEY = 'cae0e07e-aaba-46b6-aa4c-db31331f22fb';
 
 (async function testPolygonKey() {
   const symbol = 'AAPL';
