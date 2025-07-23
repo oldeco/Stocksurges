@@ -1,7 +1,7 @@
 // script.js
 
 // ← your provided key
-const API_KEY = 'b9pUWqpiaRl96K9b2EOpNePWZ2TCiALB';
+const API_KEY = b9pUWqpiaRl96K9b2EOpNePWZ2TCiALB;
 
 // calculate simple moving average of last `period` closes
 function calculateSMA(arr, period) {
@@ -29,7 +29,7 @@ function calculateRSI(arr, period) {
 }
 
 async function fetchStock(symbol) {
-  const snapUrl = `https://api.polygon.io/v2/snapshot/locale/us/markets/stocks/tickers/${symbol}?apiKey=${API_KEY}`;
+  const snapUrl = `https://api.polygon.io/v2/snapshot/locale/us/markets/stocks/tickers/${symbol}?apiKey=${b9pUWqpiaRl96K9b2EOpNePWZ2TCiALB}`;
   let data;
   try {
     const res = await fetch(snapUrl);
