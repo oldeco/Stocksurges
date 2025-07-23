@@ -2,7 +2,7 @@
 console.log('script.js loaded');
 
 // ← REPLACE this with your REST API key from "Accessing the API" tab
-const API_KEY = '0fe49cfed728cedc398677d2f019d072';
+const API_KEY = 'b9pUWqpiaRl96K9b2EOpNePWZ2TCiALB';
 
 // simple moving average over last n values
 function sma(arr, n) {
