@@ -66,7 +66,7 @@ async function loadHistoryAndMetrics(symbol, currentVolume) {
   const today = new Date();
   const end   = today.toISOString().slice(0,10);
   const start = new Date(today.setDate(today.getDate() - 30)).toISOString().slice(0,10);
-  const aggsUrl = `https://api.polygon.io/v2/aggs/ticker/${symbol}/range/1/day/${start}/${end}?apiKey=${API_KEY}`;
+  const aggsUrl = `https://api.polygon.io/v2/aggs/ticker/${symbol}/range/1/day/${start}/${end}?apiKey=${b9pUWqpiaRl96K9b2EOpNePWZ2TCiALB}`;
   const aggsRes = await fetch(aggsUrl);
   const aggsData = await aggsRes.json();
   const bars = aggsData.results || [];
