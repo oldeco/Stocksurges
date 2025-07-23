@@ -2,45 +2,124 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>StockSurge</title>
-  <link rel="stylesheet" href="style.css">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <style>
+    * { box-sizing:border-box;margin:0;padding:0 }
+    body { font-family:system-ui,sans-serif;background:#f0f2f5;color:#333 }
+    .container { max-width:600px;margin:20px auto;padding:0 10px }
+    header { display:flex;align-items:center;justify-content:space-between;margin-bottom:20px }
+    input { padding:8px; font-size:1rem; border:1px solid #ccc; border-radius:4px 0 0 4px; outline:none }
+    button { padding:8px 12px; font-size:1rem; border:none; background:#0077cc; color:#fff; border-radius:0 4px 4px 0; cursor:pointer }
+    .card, .chart-wrapper { background:#fff; border-radius:8px; box-shadow:0 2px 6px rgba(0,0,0,0.1); padding:16px; margin-bottom:20px }
+    .data-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(120px,1fr)); gap:12px }
+    .label { display:block; font-size:.85rem; color:#555 }
+    .value { font-size:1.2rem; font-weight:600; margin-top:4px; }
+    canvas { width:100%!important; height:200px!important }
+  </style>
 </head>
 <body>
   <div class="container">
     <header>
       <h1>StockSurge</h1>
-      <div class="symbol-input">
-        <input type="text" id="symbol" placeholder="Ticker (e.g. AAPL)">
+      <div>
+        <input id="symbol" value="AAPL" placeholder="Ticker (e.g. AAPL)">
         <button id="fetchBtn">Fetch</button>
       </div>
     </header>
 
-    <main>
-      <div class="card">
-        <h2 id="symbolDisplay">—</h2>
-        <div class="data-grid">
-          <div class="data-item"><span class="label">Price</span><span id="price" class="value">—</span></div>
-          <div class="data-item"><span class="label">Change</span><span id="change" class="value">—</span></div>
-          <div class="data-item"><span class="label">Change %</span><span id="changePercent" class="value">—</span></div>
-          <div class="data-item"><span class="label">Volume</span><span id="volume" class="value">—</span></div>
-          <div class="data-item"><span class="label">Avg Volume</span><span id="avgVolume" class="value">—</span></div>
-          <div class="data-item"><span class="label">Vol Δ %</span><span id="volChangePercent" class="value">—</span></div>
-          <div class="data-item"><span class="label">SMA 20</span><span id="sma20" class="value">—</span></div>
-          <div class="data-item"><span class="label">RSI 14</span><span id="rsi14" class="value">—</span></div>
-        </div>
+    <div class="card">
+      <h2 id="symbolDisplay">—</h2>
+      <div class="data-grid">
+        <div><span class="label">Price</span><span id="price" class="value">—</span></div>
+        <div><span class="label">Change</span><span id="change" class="value">—</span></div>
+        <div><span class="label">Change %</span><span id="changePercent" class="value">—</span></div>
+        <div><span class="label">Volume</span><span id="volume" class="value">—</span></div>
+        <div><span class="label">Avg Volume</span><span id="avgVolume" class="value">—</span></div>
+        <div><span class="label">Vol Δ %</span><span id="volChangePercent" class="value">—</span></div>
+        <div><span class="label">SMA 20</span><span id="sma20" class="value">—</span></div>
+        <div><span class="label">RSI 14</span><span id="rsi14" class="value">—</span></div>
       </div>
-      <div class="chart-wrapper">
-        <canvas id="chart"></canvas>
-      </div>
-    </main>
+    </div>
 
-    <footer>
-      <p>© StockSurge</p>
-    </footer>
+    <div class="chart-wrapper">
+      <canvas id="chart"></canvas>
+    </div>
   </div>
 
+  <!-- Chart.js CDN -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script src="script.js"></script>
+  <script>
+    const API_KEY = 'b9pUWqpiaRl96K9b2EOpNePWZ2TCiALB';
+
+    function sma(arr, n) {
+      if (arr.length < n) return null;
+      const slice = arr.slice(-n);
+      return slice.reduce((a,b)=>a+b,0)/n;
+    }
+    function rsi(arr, period) {
+      if (arr.length <= period) return null;
+      const recent = arr.slice(-period-1);
+      let gain=0, loss=0;
+      for(let i=1;i<recent.length;i++) {
+        const d = recent[i]-recent[i-1];
+        if (d>0) gain+=d; else loss-=d;
+      }
+      const avgG=gain/period, avgL=loss/period;
+      if (avgL===0) return 100;
+      const rs = avgG/avgL;
+      return 100 - (100/(1+rs));
+    }
+
+    async function fetchStock(sym) {
+      document.getElementById('symbolDisplay').textContent = '…';
+      try {
+        const snap = await fetch(`https://api.polygon.io/v2/snapshot/locale/us/markets/stocks/tickers/${sym}?apiKey=${b9pUWqpiaRl96K9b2EOpNePWZ2TCiALB}`)
+                          .then(r=>r.json());
+        if (!snap.ticker) throw new Error('No ticker');
+        const t = snap.ticker;
+        const price = t.day.c, prev = t.prevDay.c, change=price-prev, pct=t.todaysChangePerc*100, vol=t.day.v;
+
+        document.getElementById('symbolDisplay').textContent = sym;
+        document.getElementById('price').textContent        = price.toFixed(2);
+        document.getElementById('change').textContent       = (change>=0?'+':'')+change.toFixed(2);
+        document.getElementById('changePercent').textContent= (pct>=0?'+':'')+pct.toFixed(2)+'%';
+        document.getElementById('volume').textContent       = vol.toLocaleString();
+
+        // history
+        const today = new Date(), end = today.toISOString().slice(0,10);
+        today.setDate(today.getDate()-30);
+        const start = today.toISOString().slice(0,10);
+        const aggs = await fetch(`https://api.polygon.io/v2/aggs/ticker/${sym}/range/1/day/${start}/${end}?apiKey=${b9pUWqpiaRl96K9b2EOpNePWZ2TCiALB}`)
+                             .then(r=>r.json());
+        const bars = aggs.results||[], closes=bars.map(b=>b.c), vols=bars.map(b=>b.v);
+        const avgV = vols.reduce((a,b)=>a+b,0)/vols.length;
+        const volΔ = ((vol - avgV)/avgV)*100;
+
+        document.getElementById('avgVolume').textContent        = Math.round(avgV).toLocaleString();
+        document.getElementById('volChangePercent').textContent = (volΔ>=0?'+':'')+volΔ.toFixed(2)+'%';
+        document.getElementById('sma20').textContent = sma(closes,20)?.toFixed(2) ?? '—';
+        document.getElementById('rsi14').textContent = rsi(closes,14)?.toFixed(2) ?? '—';
+
+        // chart
+        const ctx = document.getElementById('chart').getContext('2d');
+        if (window.stockChart) window.stockChart.destroy();
+        window.stockChart = new Chart(ctx, {
+          type:'line',
+          data:{ labels:bars.map(b=>new Date(b.t).toLocaleDateString()), datasets:[{ label:`${sym} Close`, data:closes, borderWidth:2, tension:.3 }] },
+          options:{maintainAspectRatio:false, responsive:true, scales:{ x:{display:false} } }
+        });
+      } catch(err) {
+        alert('Error fetching '+sym);
+        console.error(err);
+      }
+    }
+
+    document.getElementById('fetchBtn').onclick = () => {
+      const s = document.getElementById('symbol').value.trim().toUpperCase();
+      if (s) fetchStock(s);
+    };
+    window.addEventListener('load', () => fetchStock('AAPL'));
+  </script>
 </body>
 </html>
